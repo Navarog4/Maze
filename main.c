@@ -1,7 +1,7 @@
-/*          Chemin de code pour atteindre ce programme. Attention, il faut se placer à l'intérieur du dossier contenant bin, lib, include et src
+/*          Compile and launch the program (must be in the "main.c" folder)
 
-gcc main.c -o bin/prog
-bin/prog
+gcc main.c -o maze
+maze
 
 */
 
@@ -10,23 +10,27 @@ bin/prog
 #include <time.h>
 #include <windows.h>
 
-// Function to print a table in int format
-void printIntTable(int *t, int nbBord)
-{
-    for(int i = 0; i<nbBord;i++){
-        for(int j = 0; j<nbBord; j++){
-            printf("[%i] ", t[i*nbBord+j]);
-        }
-        printf("From %i to %i\n", i*nbBord, i*nbBord+nbBord);
-    }
-}
-
 // Function to print a table in char format
-void printCharTable(char *t, int nbBord)
+void printTable(int *t, int nbBord, boolean inChar)
 {
     for(int i = 0; i<nbBord;i++){
         for(int j = 0; j<nbBord; j++){
-            printf("%c", t[i*nbBord+j]);
+            if(inChar){
+                if (t[i*nbBord+j]==0){
+                    printf("%c", 178);
+                }
+                else if (t[i*nbBord+j]==1){
+                    printf("%c", 177);
+                }
+                else if (t[i*nbBord+j]==-1){
+                    printf("%c", ' ');
+                }
+                else {
+
+                }
+            }
+            else if (!inChar)
+                printf("%i", t[i*nbBord+j]);
         }
         printf("From %i to %i\n", i*nbBord, i*nbBord+nbBord);
     }
@@ -62,54 +66,9 @@ int testTable(int *t, int nbBord)
     return 1;
 }
 
-int convertTab (int *t, int nbBord, int type)
-{
-    char *tab;
-    tab = calloc(nbBord*nbBord, sizeof(char));
-    if(type == 0){
-        for (int i = 0; i<nbBord; i++){
-            for (int j = 0; j<nbBord; j++){
-                if (t[i*nbBord+j]==0){
-                    tab[i*nbBord+j] = 178;
-                }
-                else if (t[i*nbBord+j]==1){
-                    tab[i*nbBord+j] = 177;
-                }
-                else {
-                    printf("\nY'a un probleme en case numero : %i\n",i*nbBord+j+1);
-                    system("pause");
-                }
-            }
-        }
-    }
-    if(type == 1){
-        for (int i = 0; i<nbBord; i++){
-            for (int j = 0; j<nbBord; j++){
-                if (t[i*nbBord+j]==0){
-                    tab[i*nbBord+j] = 178;
-                }
-                else if (t[i*nbBord+j]==1){
-                    tab[i*nbBord+j] = 177;
-                }
-                else if (t[i*nbBord+j]==-1){
-                    tab[i*nbBord+j] = ' ';
-                }
-                else {
-                    printf("\nY'a un probleme en case numero : %i\n", i*nbBord+j+1);
-                    system("pause");
-                }
-            }
-        }
-    }
-    printCharTable(&tab[0], nbBord);
-    free(tab);
-}
-
-
 int creationLab(int *t, int nbBord) /////V�rification : OK
 {
     int randomValue, randomValueB, temp;
-    //-----------------------------------------------Cr�ation du labyrinthe------------------------------------------------------------------//
     do{
         randomValue = rand()%(nbBord*nbBord+1);
 
@@ -192,7 +151,7 @@ int creationLab(int *t, int nbBord) /////V�rification : OK
             }
         }
     }while(testTable(&t[0], nbBord)==0);
-    //-----------------------------------------------Cr�ation des sorties du labyrinthe------------------------------------------------------//
+
     t[nbBord]=1;
     t[nbBord*nbBord-1-nbBord]=1;
 }
@@ -202,7 +161,6 @@ int creationLab(int *t, int nbBord) /////V�rification : OK
 int calculateReverseTable(int *tMove, int nbBord, int caseNumber)
 {
     // Check if each nearby case is empty, then increment the right case by 1. 
-
     if(tMove[caseNumber + 1] == 1){
         tMove[caseNumber + 1] = tMove[caseNumber] + 1;
         calculateReverseTable(tMove, nbBord, caseNumber + 1);
@@ -291,7 +249,6 @@ int resolTab(int *tResol, int nbBord, int origine, int fin){
             if(tResol[i]!=0 && tResol[i]!=-1)
                 tResol[i]=1;
         }
-        //convertTab(&tResol[0], nbBord, 1);
         
         tResol[tempCase]=-1;
         if(tResol[tempCase+1]<tempVal && tResol[tempCase+1]!=0 && tResol[tempCase+1]!=-1){
@@ -314,14 +271,12 @@ int resolTab(int *tResol, int nbBord, int origine, int fin){
             tResol[tempCase]=-1;
             tempCase+=nbBord;
         }
-        printIntTable(tResol, nbBord);
+        printTable(tResol, nbBord, 0);
     }while (tResol[fin]==1);
     for (int i = 0; i<nbBord*nbBord; i++){
         if(tResol[i]!=0 && tResol[i]!=-1)
             tResol[i]=1;
     }
-    convertTab(&tResol[0], nbBord, 1);
-
 }
 
 int main(void)
@@ -331,7 +286,7 @@ int main(void)
     int point;
 
     //-----------------------------------------------Initialisaytion du labyrinthe-----------------------------------------------------------//
-    printf("\nCombien de lignes/colonnes ? ");
+    printf("\nHow much for the maze size ? ");
     scanf("%i", &nbBord);
     if (nbBord%2==0)
         nbBord++;
@@ -345,7 +300,7 @@ int main(void)
     //-----------------------------------------------Cr�ation du labyrinthe int�rieur--------------------------------------------------------//
     creationLab(&t[0], nbBord);
 
-    convertTab(&t[0], nbBord, 0);
+    printTable(t, nbBord, 1);
 
     //-----------------------------------------------Partie r�solution du labyrinthe--------------------------------------------------------//
     for (int i=0; i<nbBord*nbBord; i++){
@@ -355,7 +310,7 @@ int main(void)
     tMove[nbBord*nbBord-nbBord]=2;
     calculateReverseTable(tMove, nbBord, nbBord*nbBord-1-nbBord);
 
-    printIntTable(tMove, nbBord);
+    printTable(tMove, nbBord, 0);
     system("pause");
 
     //-----------------------------------------------Partie r�solution du labyrinthe le plus simplement-------------------------------------//
@@ -367,7 +322,7 @@ int main(void)
     system("cls");
 
     printf("\nLe labyrinthe est : \n\n");
-    convertTab(&t[0],nbBord,0);
+    printTable(t, nbBord, 1);
 
     /*
     printf("\nVeux-tu placer un point a atteindre avant l'arrivee ? (1/0) ");
