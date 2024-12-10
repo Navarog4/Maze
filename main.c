@@ -10,35 +10,32 @@ bin/prog
 #include <time.h>
 #include <windows.h>
 
-
-#define test printf("------------------------test------------------------")
-
-void afficheTableauI(int *t, int nbBord)
+// Function to print a table in int format
+void printIntTable(int *t, int nbBord)
 {
     for(int i = 0; i<nbBord;i++){
         for(int j = 0; j<nbBord; j++){
             printf("[%i] ", t[i*nbBord+j]);
         }
-        printf("De %i a %i", i*nbBord, i*nbBord+nbBord);
-        printf("\n");
+        printf("From %i to %i\n", i*nbBord, i*nbBord+nbBord);
     }
 }
 
-void afficheTableauC(char *t, int nbBord)
+// Function to print a table in char format
+void printCharTable(char *t, int nbBord)
 {
     for(int i = 0; i<nbBord;i++){
         for(int j = 0; j<nbBord; j++){
             printf("%c", t[i*nbBord+j]);
         }
-        printf("De %i a %i", i*nbBord, i*nbBord+nbBord);
-        printf("\n");
+        printf("From %i to %i\n", i*nbBord, i*nbBord+nbBord);
     }
 }
 
-
-void setup(int *t, int nbBord) /////V�rification : OK
+// Setup blank table
+void setupBlankTable(int *t, int nbBord)
 {
-    //-----------------------------------------------Mise en place des cases pr�d�finies du tableau-----------------------------------------//
+    // Set blank table, with walls
     for (int i = 0; i<nbBord; i++){
             for(int j = 0; j<nbBord; j++){
                 t[i*nbBord+j]=(i*nbBord+j)+100;
@@ -46,11 +43,16 @@ void setup(int *t, int nbBord) /////V�rification : OK
                     t[i*nbBord+j]=0;
             }
     }
-    t[nbBord+1]=1; //Initialise la premi�re case du labyrinthe � 1
+
+    // Set the beginning of the maze to 1
+    t[nbBord+1]=1; 
+
+    // Start the random lib
     srand(time(NULL));
 }
 
-int verifTab(int *t, int nbBord) /////V�rification : OK
+// Check if table contains only 0 and 1 (walls and empty)
+int testTable(int *t, int nbBord)
 {
     for(int i=0; i<nbBord*nbBord; i++){
         if(t[i]!=0 && t[i]!=1){
@@ -99,7 +101,7 @@ int convertTab (int *t, int nbBord, int type)
             }
         }
     }
-    afficheTableauC(&tab[0], nbBord);
+    printCharTable(&tab[0], nbBord);
     free(tab);
 }
 
@@ -189,31 +191,33 @@ int creationLab(int *t, int nbBord) /////V�rification : OK
                 }while(temp==0);
             }
         }
-    }while(verifTab(&t[0], nbBord)==0);
+    }while(testTable(&t[0], nbBord)==0);
     //-----------------------------------------------Cr�ation des sorties du labyrinthe------------------------------------------------------//
     t[nbBord]=1;
     t[nbBord*nbBord-1-nbBord]=1;
 }
 
-int nextMove(int *tMove, int origine, int nbBord)
+// This function calculate the distance from the end of the maze to each case. 
+// These calculations are stored in the tMove table. 
+int calculateReverseTable(int *tMove, int nbBord, int caseNumber)
 {
-    for (int i=0; i<nbBord*nbBord; i++){
-        if(tMove[i]==origine && i != nbBord*nbBord-1-nbBord){
-            for(int j=0; j<4; j++){
-                if (tMove[i+1]!=0 && tMove[i+1]==1 && (i+1)!= nbBord*nbBord-1-nbBord){
-                    tMove[i+1]=origine+1;
-                }
-                else if (tMove[i-1]!=0 && tMove[i-1]==1 && (i-1)!= nbBord*nbBord-1-nbBord){
-                    tMove[i-1]=origine+1;
-                }
-                else if (tMove[i-nbBord]!=0 && tMove[i-nbBord]==1 && (i-nbBord)!= nbBord*nbBord-1-nbBord){
-                    tMove[i-nbBord]=origine+1;
-                }
-                else if (tMove[i+nbBord]!=0 && tMove[i+nbBord]==1 && (i+nbBord)!= nbBord*nbBord-1-nbBord){
-                    tMove[i+nbBord]=origine+1;
-                }
-            }
-        }
+    // Check if each nearby case is empty, then increment the right case by 1. 
+
+    if(tMove[caseNumber + 1] == 1){
+        tMove[caseNumber + 1] = tMove[caseNumber] + 1;
+        calculateReverseTable(tMove, nbBord, caseNumber + 1);
+    }
+    else if(tMove[caseNumber - 1] == 1){
+        tMove[caseNumber - 1] = tMove[caseNumber] + 1;
+        calculateReverseTable(tMove, nbBord, caseNumber - 1);
+    }
+    else if(tMove[caseNumber + nbBord] == 1){
+        tMove[caseNumber + nbBord] = tMove[caseNumber] + 1;
+        calculateReverseTable(tMove, nbBord, caseNumber + nbBord);
+    }
+    else if(tMove[caseNumber - nbBord] == 1){
+        tMove[caseNumber - nbBord] = tMove[caseNumber] + 1;
+        calculateReverseTable(tMove, nbBord, caseNumber - nbBord);
     }
 }
 
@@ -310,7 +314,7 @@ int resolTab(int *tResol, int nbBord, int origine, int fin){
             tResol[tempCase]=-1;
             tempCase+=nbBord;
         }
-        afficheTableauI(tResol, nbBord);
+        printIntTable(tResol, nbBord);
     }while (tResol[fin]==1);
     for (int i = 0; i<nbBord*nbBord; i++){
         if(tResol[i]!=0 && tResol[i]!=-1)
@@ -336,7 +340,7 @@ int main(void)
     tMove = calloc(nbBord*nbBord, sizeof(int));
     tResol = calloc(nbBord*nbBord, sizeof(int));
 
-    setup(&t[0], nbBord);
+    setupBlankTable(&t[0], nbBord);
 
     //-----------------------------------------------Cr�ation du labyrinthe int�rieur--------------------------------------------------------//
     creationLab(&t[0], nbBord);
@@ -347,14 +351,12 @@ int main(void)
     for (int i=0; i<nbBord*nbBord; i++){
         tMove[i] = t[i];
     }
-    tMove[nbBord*nbBord-1-nbBord]=1;
-    if(tMove[nbBord*nbBord-2-nbBord]!=0)
-        tMove[nbBord*nbBord-2-nbBord]=2;
-    int var=2;
-    for (int i=0; i < nbBord*nbBord; i++){
-        nextMove(&tMove[0], var, nbBord);
-        var++;
-    }
+
+    tMove[nbBord*nbBord-nbBord]=2;
+    calculateReverseTable(tMove, nbBord, nbBord*nbBord-1-nbBord);
+
+    printIntTable(tMove, nbBord);
+    system("pause");
 
     //-----------------------------------------------Partie r�solution du labyrinthe le plus simplement-------------------------------------//
     for (int i=0; i<nbBord*nbBord; i++){
@@ -367,15 +369,15 @@ int main(void)
     printf("\nLe labyrinthe est : \n\n");
     convertTab(&t[0],nbBord,0);
 
-
+    /*
     printf("\nVeux-tu placer un point a atteindre avant l'arrivee ? (1/0) ");
-    scanf("%i", &point);
+    scanf("%i", &point);*/
     if (point!=1){
         printf("\nSi vous continuez, vous obtiendrez la resolution du labyrinthe.");
 
         printf("\nLa resolution la plus simple du labyrinthe est : \n");
         resolTab(&tResol[0], nbBord, nbBord, nbBord*nbBord-1-nbBord);
-    }
+    }/*
     else
     {
         for (int i=0; i<nbBord*nbBord; i++){
@@ -398,11 +400,11 @@ int main(void)
             t[pointPos+nbBord]=2;
         int var=2;
         for (int i=0; i < nbBord*nbBord; i++){
-            nextMove(&tMove[0], var, nbBord);
+            (&tMove[0], var, nbBord);
             var++;
         }
         resolTab(&tResol[0], nbBord, nbBord,pointPos);
-    }
+    }*/
 
     free(tMove);
     free(t);
