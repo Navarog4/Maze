@@ -154,12 +154,9 @@ int creationLab(int *t, int n)
     t[n*n-1-n]=1;
 }
 
-// This function calculate the distance from the end of the maze to each case. 
-// These calculations are stored in the tMove table. 
+// This function trace the fastest path 
 int calculateFastestPath(int *tMove, int n, int caseNumber)
 {
-
-    // Check if each nearby case is empty, then increment the right case by 1. 
     if(tMove[caseNumber + 1] < tMove[caseNumber] && tMove[caseNumber + 1] > 0){
         tMove[caseNumber] = -1;
         calculateFastestPath(tMove, n, caseNumber + 1);
@@ -178,6 +175,9 @@ int calculateFastestPath(int *tMove, int n, int caseNumber)
     }
 }
 
+
+// This function calculate the distance from the end of the maze to each case. 
+// These calculations are stored in the tMove table. 
 int calculateReverseTable(int *tMove, int nbBord, int caseNumber)
 {
     // Check if each nearby case is empty, then increment the right case by 1. 
@@ -201,9 +201,8 @@ int calculateReverseTable(int *tMove, int nbBord, int caseNumber)
 
 int main(void)
 {
-    int *t = NULL, *tMove = NULL, *tResol = NULL, pointPos;
+    int *t = NULL, *tMove = NULL;
     int n;
-    int point;
 
     // Maze initialization
     printf("\nHow much for the maze size ? ");
@@ -213,7 +212,6 @@ int main(void)
 
     t = calloc(n*n, sizeof(int));
     tMove = calloc(n*n, sizeof(int));
-    tResol = calloc(n*n, sizeof(int));
 
     setup(t, n);
 
@@ -230,10 +228,6 @@ int main(void)
     tMove[n * n - n - 1]=2;
     calculateReverseTable(tMove, n, n*n-1-n);
 
-    for (int i=0; i<n*n; i++){
-        tResol[i] = tMove[i];
-    }
-
     printf("\nMaze : \n");
     calculateFastestPath(tMove, n, n);
     tMove[n*n-1-n] = -1;
@@ -241,5 +235,4 @@ int main(void)
 
     free(tMove);
     free(t);
-    free(tResol);
 }
