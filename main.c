@@ -10,6 +10,9 @@ maze
 #include <time.h>
 #include <windows.h>
 
+#define FILLED 177
+#define EMPTY 178
+#define PATH 32
 
 // Function to print a table in char format
 void printTable(int *t, int n, boolean inChar)
@@ -18,13 +21,13 @@ void printTable(int *t, int n, boolean inChar)
         for(int j = 0; j<n; j++){
             if(inChar){
                 if (t[i*n+j]==0){
-                    printf("%c", 178);
+                    printf("%c", EMPTY);
                 }
                 else if (t[i*n+j]==-1){
-                    printf("%c", ' ');
+                    printf("%c", PATH);
                 }
                 else {
-                    printf("%c", 177);
+                    printf("%c", FILLED);
                 }
             }
             else if (!inChar)
@@ -58,6 +61,17 @@ int testTable(int *t, int n)
     for(int i=0; i<n*n; i++){
         if(t[i]!=0 && t[i]!=1 && t[i]!=-1){
             return 0;
+        }
+    }
+    return 1;
+}
+
+// Reset table : if a case is not 0 or -1, push 1
+int resetTable(int *t, int n)
+{
+    for(int i=0; i<n*n; i++){
+        if(t[i]!=0 && t[i]!=1 && t[i]!=-1){
+            t[i] = 1;
         }
     }
     return 1;
@@ -175,7 +189,6 @@ int calculateFastestPath(int *tMove, int n, int caseNumber)
     }
 }
 
-
 // This function calculate the distance from the end of the maze to each case. 
 // These calculations are stored in the tMove table. 
 int calculateReverseTable(int *tMove, int nbBord, int caseNumber)
@@ -199,6 +212,7 @@ int calculateReverseTable(int *tMove, int nbBord, int caseNumber)
     }
 }
 
+
 int main(void)
 {
     int *t = NULL, *tMove = NULL;
@@ -218,6 +232,7 @@ int main(void)
     // Maze setup
     creationLab(&t[0], n);
 
+    printf("\nMaze :\n");
     printTable(t, n, 1);
 
     // Maze resolution
@@ -228,9 +243,12 @@ int main(void)
     tMove[n * n - n - 1]=2;
     calculateReverseTable(tMove, n, n*n-1-n);
 
-    printf("\nMaze : \n");
+    printf("\nSolved maze :\n");
     calculateFastestPath(tMove, n, n);
     tMove[n*n-1-n] = -1;
+
+    resetTable(t, n);
+
     printTable(tMove, n, 1);
 
     free(tMove);
